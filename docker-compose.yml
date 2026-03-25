@@ -1,0 +1,49 @@
+version: "3.9"
+services:
+  fivem:
+    build: ./fivem
+    container_name: fivem-server
+    env_file:
+      - .env
+    environment:
+      - TERM=xterm
+      - TXHOST_DATA_PATH=/opt/fivem/txData
+      - TXHOST_TXA_PORT=40120
+    ports:
+      - "30120:30120/tcp"
+      - "30120:30120/udp"
+      - "40120:40120/tcp"
+    volumes:
+      - fivem_data:/opt/fivem/server-data
+      - fivem_artifacts:/opt/fivem/server
+      - fivem_txdata:/opt/fivem/txData
+    restart: unless-stopped
+
+  mariadb:
+    image: mariadb:11
+    container_name: fivem-db
+    env_file:
+      - .env
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: fivem-phpmyadmin
+    environment:
+      PMA_HOST: mariadb
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - mariadb
+    restart: unless-stopped
+
+volumes:
+  fivem_data:
+  fivem_artifacts:
+  fivem_txdata:
+  mariadb_data:
