@@ -190,10 +190,11 @@ nano /opt/fivem/server-data/server.cfg
 1. Ressource herunterladen und entpacken (z.B. `es_extended`)
 2. In den `resources` Ordner kopieren (via VS Code oder `docker cp`)
 3. In `server.cfg` eintragen:
+   
    ```
    ensure es_extended
    ```
-4. In txAdmin: **Server neu starten**
+5. In txAdmin: **Server neu starten**
 
 ---
 
