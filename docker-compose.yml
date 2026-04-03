@@ -1,4 +1,5 @@
 version: "3.9"
+
 services:
   fivem:
     build: ./fivem
@@ -40,6 +41,42 @@ services:
       - "8080:80"
     depends_on:
       - mariadb
+    restart: unless-stopped
+
+  backup:
+    image: alpine
+    container_name: fivem-backup
+    depends_on:
+      - mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - fivem_data:/volumes/fivem_data:ro
+      - fivem_artifacts:/volumes/fivem_artifacts:ro
+      - fivem_txdata:/volumes/fivem_txdata:ro
+      - mariadb_data:/volumes/mariadb_data:ro
+      - C:/fivem-backups:/backups
+    entrypoint: >
+      sh -c "
+      apk add --no-cache mariadb-client tar;
+      while true; do
+        DATE=$$(date +%Y-%m-%d_%H-%M);
+
+        echo 'Starting backup...';
+
+        mysqldump -h mariadb -u root -p$$MYSQL_ROOT_PASSWORD --all-databases > /backups/db_$$DATE.sql;
+
+        tar -czf /backups/fivem_server-data_$$DATE.tar.gz /volumes/fivem_data;
+        tar -czf /backups/fivem_artifacts_$$DATE.tar.gz /volumes/fivem_artifacts;
+        tar -czf /backups/fivem_txdata_$$DATE.tar.gz /volumes/fivem_txdata;
+
+        find /backups -type f -mtime +7 -delete;
+
+        echo 'Backup finished';
+
+        sleep 86400;
+      done
+      "
     restart: unless-stopped
 
 volumes:
